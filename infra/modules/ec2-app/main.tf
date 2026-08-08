@@ -1,0 +1,53 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
+resource "aws_security_group" "app_sg" {
+  name = "${var.project}-${var.env}-sg"
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_instance" "app" {
+  ami                    = "ami-0c55b159cbfafe1f0"
+  instance_type          = "t3.micro"
+  vpc_security_group_ids = [aws_security_group.app_sg.id]
+  tags                   = { Name = "${var.project}-${var.env}-ec2" }
+
+  user_data = <<-EOT
+    #!/bin/bash
+    yum update -y
+    yum install docker -y
+    service docker start
+    docker run -d -p 8080:8080 ${var.docker_image}
+  EOT
+}
+
+variable "project" { type = string }
+variable "env" { type = string }
+variable "docker_image" { type = string }
+
+output "public_ip" {
+  value = aws_instance.app.public_ip
+}
