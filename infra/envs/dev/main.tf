@@ -10,3 +10,5 @@ module "backend" {
   env          = "dev"
   docker_image = "teamsim/app:latest"
 }
+AWS_SECRET="AKIAIOSFODNN7EXAMPLE"
+AWS_SECRET="AKIAIOSFODNN7EXAMPLE"
