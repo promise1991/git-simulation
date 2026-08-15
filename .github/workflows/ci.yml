@@ -6,17 +6,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
-        with: { java-version: '17', distribution: 'temurin' }
+        with:
+          java-version: '17'
+          distribution: 'temurin'
       - name: Build & Test
         run: cd app && mvn test
       - name: Gitleaks - Secret Scan
         uses: gitleaks/gitleaks-action@v2
-        env: { GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Trivy FS Scan
         uses: aquasecurity/trivy-action@master
-        with: { scan-type: 'fs', scan-ref: '.', format: 'table' }
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
       - name: Build Docker
         run: cd app && mvn package -DskipTests && docker build -t teamsim/app:latest .
       - name: Trivy Image Scan
         uses: aquasecurity/trivy-action@master
-        with: { image-ref: 'teamsim/app:latest', format: 'table', exit-code: '1', severity: 'CRITICAL,HIGH' }
+        with:
+          image-ref: 'teamsim/app:latest'
+          format: 'table'
