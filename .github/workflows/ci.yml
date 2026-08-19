@@ -1,37 +1,30 @@
 name: CI - Security & Quality
 on: [pull_request]
-
 jobs:
   build-scan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-
-      - uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6d3503913755d # v4.2.1
+      - uses: actions/setup-java@8df1039502a15bceb9433410b1a100fbe190c53b # v4.5.0
         with:
           java-version: '17'
           distribution: 'temurin'
-
       - name: Build & Test
         run: cd app && mvn test
-
       - name: Gitleaks Scan
-        uses: gitleaks/gitleaks-action@ff98106e1c8ea8be36bdc6cf9e1fe7a2acb51b7bf # v2.3.9
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Trivy FS Scan
-        uses: aquasecurity/trivy-action@0a18a1eb93893e08a1be486e75b4a74c1a7cc1f7 # 0.28.0
+        uses: aquasecurity/trivy-action@91e7c2c36dcad14149d8e455b960af62a2ffb275 # v0.33.1
         with:
           scan-type: 'fs'
           scan-ref: '.'
           format: 'table'
-
       - name: Build Docker
-        run: cd app && mvn package -DskipTests && docker build -t teamsim/app:latest .
-
+        run: cd app && mvn package -DskipTests && docker build -t teamsim/app:latest.
       - name: Trivy Image Scan
-        uses: aquasecurity/trivy-action@0a18a1eb93893e08a1be486e75b4a74c1a7cc1f7 # 0.28.0
+        uses: aquasecurity/trivy-action@91e7c2c36dcad14149d8e455b960af62a2ffb275 # v0.33.1
         with:
           image-ref: 'teamsim/app:latest'
           format: 'table'
