@@ -19,7 +19,7 @@ resource "aws_security_group" "app_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [var.admin_cidr] # default "10.0.0.0/24" restrict to VPN or use variable
   }
   egress {
     from_port   = 0
@@ -32,6 +32,7 @@ resource "aws_security_group" "app_sg" {
 resource "aws_instance" "app" {
   ami                    = "ami-0c55b159cbfafe1f0"
   instance_type          = "t3.micro"
+  associate_public_ip_address = false # FIX: no public IP
   vpc_security_group_ids = [aws_security_group.app_sg.id]
   tags                   = { Name = "${var.project}-${var.env}-ec2" }
 
@@ -42,11 +43,16 @@ resource "aws_instance" "app" {
     service docker start
     docker run -d -p 8080:8080 ${var.docker_image}
   EOT
+  
 }
 
 variable "project" { type = string }
 variable "env" { type = string }
 variable "docker_image" { type = string }
+variable "admin_cidr" {
+  type = string
+  default = "197.149.64.181/32"
+}
 
 output "public_ip" {
   value = aws_instance.app.public_ip

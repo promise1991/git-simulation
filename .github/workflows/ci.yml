@@ -4,9 +4,7 @@ jobs:
   build-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-           fetch-depth: 0
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2 Sonar requires full commit hash instead of v4 tag for security scan to work 
       - uses: actions/setup-java@v4
         with:
           java-version: '17'
@@ -14,19 +12,14 @@ jobs:
       - name: Build & Test
         run: cd app && mvn test
       - name: Gitleaks - Secret Scan
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@7437b9f4d8a13c84e1c2eda81b2b9e4fc0f7f3a7 # v2.3.10 Sonar requires full commit hash instead of v2 tag for security scan to work
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Trivy FS Scan
         uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'table'
+        with: { scan-type: 'fs', scan-ref: '.', format: 'table' }
       - name: Build Docker
         run: cd app && mvn package -DskipTests && docker build -t teamsim/app:latest .
       - name: Trivy Image Scan
         uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: 'teamsim/app:latest'
-          format: 'table'
+        with: { image-ref: 'teamsim/app:latest', format: 'table', exit-code: '1', severity: 'CRITICAL,HIGH' }
