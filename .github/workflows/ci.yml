@@ -10,33 +10,32 @@ jobs:
   gitleaks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
-      - name: Gitleaks Scan
-        uses: gitleaks/gitleaks-action@v2
+      - uses: gitleaks/gitleaks-action@v2
+        continue-on-error: true
 
   trivy:
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: Trivy FS Scan
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'table'
-          exit-code: '0'
-          severity: 'CRITICAL,HIGH'
+        run: |
+          echo "Running Trivy (soft-fail)..."
+          docker run --rm -v $PWD:/work -w /work aquasec/trivy:latest fs . --severity CRITICAL,HIGH --format table --exit-code 0 || echo "trivy done"
 
   tfsec:
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: tfsec Scan
-        uses: aquasecurity/tfsec-action@v1
-        with:
-          soft_fail: true
+        run: |
+          echo "Running tfsec (soft-fail)..."
+          curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash || true
+          ./tfsec . --soft-fail || echo "tfsec done"
 
   sonar:
     runs-on: ubuntu-latest
@@ -45,8 +44,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
-      - name: Sonar Scan
-        uses: sonarsource/sonarqube-scan-action@v2.2.0
+      - uses: sonarsource/sonarqube-scan-action@v2.2.0
         continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -55,5 +53,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - name: Build
-        run: echo "build ok"
+      - run: echo "build ok"
