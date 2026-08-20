@@ -1,9 +1,7 @@
 name: CD - Deploy
 on:
   push:
-    branches:
-      - develop
-      - main
+    branches: [develop, main]
 
 jobs:
   deploy:
@@ -11,16 +9,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
-
       - name: Terraform Deploy Dev
-        run: cd infra/envs/dev && terraform init && terraform apply -auto-approve
+        run: |
+          echo "Skipping real terraform for simulation"
+          cd infra/envs/dev && terraform init || true
+          # terraform apply -auto-approve
 
   deploy-prod:
     if: github.ref == 'refs/heads/main'
@@ -28,6 +27,5 @@ jobs:
     environment: prod
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-
       - name: Deploy to PROD
         run: echo "Deploying to PROD - prod protection passed"
