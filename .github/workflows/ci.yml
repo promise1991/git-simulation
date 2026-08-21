@@ -42,15 +42,15 @@ jobs:
           exit-code: '0'
           severity: 'CRITICAL,HIGH'
 
+
   tfsec:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - name: tfsec
-        uses: aquasecurity/tfsec-action@v1
-        with:
-          args: . --soft-fail
+      - name: tfsec scan
+        run: |
+          docker run --rm -v $PWD:/src aquasec/tfsec /src --soft-fail --format default || true
 
   sonar:
     runs-on: ubuntu-latest
