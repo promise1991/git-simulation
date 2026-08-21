@@ -2,9 +2,9 @@ name: CI - Security & Quality
 
 on:
   push:
-    branches: [ develop, main ]
+    branches: [develop, main]
   pull_request:
-    branches: [ develop, main ]
+    branches: [develop, main]
 
 jobs:
   gitleaks:
@@ -21,21 +21,18 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - name: Trivy FS Scan
-        run: |
-          echo "Running Trivy (soft-fail)..."
-          docker run --rm -v $PWD:/work -w /work aquasec/trivy:latest fs . --severity CRITICAL,HIGH --format table --exit-code 0 || echo "trivy done"
+      - name: Trivy Scan
+        run: docker run --rm -v $PWD:/work -w /work aquasec/trivy:latest fs . --severity CRITICAL,HIGH --exit-code 0 --format table || true
 
   tfsec:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - name: tfsec Scan
+      - name: tfsec
         run: |
-          echo "Running tfsec (soft-fail)..."
-          curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash || true
-          ./tfsec . --soft-fail || echo "tfsec done"
+          curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+          ./tfsec . --soft-fail || true
 
   sonar:
     runs-on: ubuntu-latest
